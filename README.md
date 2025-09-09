@@ -1,20 +1,11 @@
-# @nourishiq/mobile (Expo/React Native)
+# NourishIQ
 
-Branded mobile app with advanced overlays: Reports, Predict (Wellness Radar), Devices, Client Switcher.
+NourishIQ is the world’s most advanced AI-powered nutrition and wellness app.  
+It combines cutting-edge data science with holistic, evidence-based nutrition.
 
-## Run locally
-```bash
-pnpm i
-pnpm start
-```
+---
 
-Scan the QR with Expo Go.
+## 📌 Branding Guidelines
 
-## Configure API
-Set an env var in your Expo project (app.config or eas.json) or use shell when running:
-```
-EXPO_PUBLIC_API_URL=https://api.your-deployment.com pnpm start
-```
-
-## Brand rule
-Replace `./assets/logomark.png` with your **official** NourishIQ PNG before publishing.
+Our brand identity is critical to NourishIQ’s mission.  
+Please review the [Branding Guidelines](docs/BRANDING.md) before contributing any design, documentation, or code that involves the logo or visuals.
