@@ -1,0 +1,15 @@
+node_modules/
+pnpm-lock.yaml
+dist/
+.next/
+.expo/
+android/
+ios/
+build/
+*.log
+.DS_Store
+.env
+.env.local
+.env.*.local
+services/api/.env
+apps/admin/.env.local
