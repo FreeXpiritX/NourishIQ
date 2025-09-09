@@ -1,1 +1,105 @@
+export default {
+  transform: { '^.+\\.(t|j)sx?$': ['ts-jest', { useESM: true }] },
+  testEnvironment: 'node',
+  moduleFileExtensions: ['ts','tsx','js'],
+  roots: ['<rootDir>/src']
+};
 
+{
+  "name": "@nourishiq/api",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "migrate": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "prisma:gen": "prisma generate",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.16.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "pino": "^9.3.2",
+    "pino-pretty": "^11.2.2",
+    "stripe": "^14.25.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.3",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.2",
+    "prisma": "^5.16.2",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/jest": "^29.5.12",
+    "@types/cors": "^2.8.17",
+    "@types/morgan": "^1.9.7"
+  }
+}
+
+# NourishIQ API (Express + Prisma + Stripe Live)
+
+## Quick Start
+```bash
+pnpm i
+cp .env.example .env
+# edit .env with your Supabase DATABASE_URL & Stripe keys
+pnpm prisma:gen
+pnpm db:push   # or pnpm migrate
+pnpm dev
+```
+
+Health check:
+```
+GET http://localhost:3000/api/health
+```
+
+## Stripe (Live-ready)
+- Set `STRIPE_SECRET_KEY=sk_live_xxx` (or `sk_test_xxx` for testing).
+- Set `STRIPE_PRICE_MONTHLY=price_xxx` (from Stripe dashboard).
+- Set `STRIPE_WEBHOOK_SECRET=whsec_xxx` (from Stripe CLI or dashboard).
+- Create a checkout session:
+```
+POST /api/stripe/create-checkout-session
+```
+- Webhook endpoint:
+```
+POST /api/stripe/webhook
+```
+**Important:** Webhook requires raw body; do not use `express.json()` on that route.
+
+## Predict, Wearables, Referrals, Privacy
+- Predict risks: `GET /api/predict/risks`
+- Wearables: `POST /api/wearables/connect`, `POST /api/wearables/ingest`, `POST /api/wearables/summarize`
+- Metrics rollup: `GET /api/metrics/rollup`
+- Referrals: `GET/POST /api/referrals`
+
+## Auth (Dev)
+- `GET /api/auth/me` returns decoded JWT claims if `Authorization: Bearer <token>` provided.
+- Replace with Auth0/Cognito later.
+
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "Bundler",
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*.ts"]
+}
