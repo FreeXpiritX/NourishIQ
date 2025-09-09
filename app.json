@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "NourishIQ",
+    "slug": "nourishiq",
+    "scheme": "nourishiq",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/logomark.png",
+    "splash": {
+      "image": "./assets/logomark.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logomark.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "org.nourishiq.app"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "NOURISHIQ-PLACEHOLDER"
+      }
+    }
+  }
+}
