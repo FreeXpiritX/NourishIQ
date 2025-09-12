@@ -1,0 +1,97 @@
+import React, { useCallback, useEffect, useState } from "react";
+import { SafeAreaView, Text, ScrollView, RefreshControl, Pressable, View } from "react-native";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8082";
+
+async function fetchJson(path, opts = {}) {
+  const res = await fetch(`${API_URL}${path}`, opts);
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`API ${path} -> ${res.status} ${body}`);
+  }
+  return res.json();
+}
+
+export default function App() {
+  const [health, setHealth] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [err, setErr] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = useCallback(async () => {
+    setErr(null);
+    try {
+      const h = await fetchJson("/api/health");
+      setHealth(h);
+      const u = await fetchJson("/api/users");
+      setUsers(u.users || []);
+    } catch (e) {
+      setErr(String(e.message || e));
+    }
+  }, []);
+
+  const createUser = useCallback(async () => {
+    setErr(null);
+    try {
+      await fetchJson("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      await load();
+    } catch (e) {
+      setErr(String(e.message || e));
+    }
+  }, [load]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <SafeAreaView style={{ flex: 1, padding: 20, gap: 12 }}>
+      <Text style={{ fontSize: 22, fontWeight: "700" }}>NourishIQ Mobile (Dev)</Text>
+
+      {err ? <Text style={{ color: "red" }}>{err}</Text> : null}
+
+      <Text style={{ fontSize: 14 }}>API URL: {process.env.EXPO_PUBLIC_API_URL}</Text>
+      <Text style={{ fontSize: 14 }}>Health: {health ? JSON.stringify(health) : "…loading"}</Text>
+
+      <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
+        <Pressable
+          onPress={load}
+          style={{ backgroundColor: "#222", paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8 }}
+        >
+          <Text style={{ color: "white" }}>Reload</Text>
+        </Pressable>
+        <Pressable
+          onPress={createUser}
+          style={{ backgroundColor: "#0a7", paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8 }}
+        >
+          <Text style={{ color: "white" }}>Create Demo User</Text>
+        </Pressable>
+      </View>
+
+      <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 8 }}>Users</Text>
+
+      <ScrollView
+        style={{ flex: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              await load().finally(() => setRefreshing(false));
+            }}
+          />
+        }
+      >
+        {users.length === 0 ? (
+          <Text style={{ marginTop: 8 }}>No users yet. Tap “Create Demo User”.</Text>
+        ) : (
+          users.map((u, i) => (
+            <Text key={i} style={{ marginBottom: 4 }}>{u.email}</Text>
+          ))
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}

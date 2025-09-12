@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "NourishIQ",
+    "slug": "nourishiq",
+    "scheme": "nourishiq",
+    "ios": {
+      "bundleIdentifier": "com.nourishiqlife.dev"
+    },
+    "android": {
+      "package": "com.nourishiqlife.dev"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "92014805-9ca3-4057-b105-7df89b38916e"
+      }
+    }
+  }
+}
