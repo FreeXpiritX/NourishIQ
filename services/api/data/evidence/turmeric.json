@@ -1,0 +1,35 @@
+{
+  "id": "turmeric",
+  "title": "Turmeric (Curcuma longa)",
+  "category": "Foods",
+  "tags": ["Turmeric","Curcumin","Anti-inflammatory","BANM"],
+  "summary": "Turmeric contains curcuminoids with antioxidant and anti-inflammatory properties; best absorbed with fat and black pepper (piperine).",
+  "evidence": [
+    {
+      "title": "Knee Osteoarthritis (Pain/Function)",
+      "summary": "Curcumin extracts show modest pain and function improvements vs placebo in knee OA.",
+      "evidence_level": "Moderate (multiple RCTs, meta-analyses)",
+      "citation": "Daily et al. J Med Food 2016; Bannuru et al. Ann Intern Med 2015 (network meta-analysis)."
+    },
+    {
+      "title": "Inflammation Markers",
+      "summary": "Curcumin may reduce CRP and other inflammatory markers in metabolic risk.",
+      "evidence_level": "Low–Moderate (heterogeneous RCTs)",
+      "citation": "Sahebkar A. J Cardiovasc Pharmacol 2014; meta-analyses of curcumin on CRP."
+    }
+  ],
+  "safety": [
+    "Generally well tolerated; GI upset possible.",
+    "May interact with anticoagulants/antiplatelets (theoretical).",
+    "High-dose supplements may affect gallbladder issues."
+  ],
+  "banm_applications": [
+    "Culinary use: ½–1 tsp turmeric powder in curries, soups, eggs; add black pepper and fat for absorption.",
+    "Golden milk: turmeric + milk/alt milk + pepper; optional ginger/cinnamon."
+  ],
+  "authenticity": {
+    "issue": "Supplement quality varies; some powders adulterated.",
+    "recommendation": "Prefer reputable brands; standardized extracts for supplements when indicated."
+  },
+  "banm_tags": ["Anti-inflammatory","Spice","BANM"]
+}

@@ -1,0 +1,35 @@
+{
+  "id": "omega3",
+  "title": "Omega-3 (EPA/DHA)",
+  "category": "Nutrients",
+  "tags": ["Fish oil","EPA","DHA","Cardio","BANM"],
+  "summary": "Long-chain omega-3 fatty acids (EPA/DHA) support cardiometabolic and neurocognitive health; best obtained from fatty fish or quality supplements.",
+  "evidence": [
+    {
+      "title": "Triglyceride Lowering",
+      "summary": "2–4 g/day EPA/DHA reduces fasting triglycerides.",
+      "evidence_level": "High (guidelines, RCTs)",
+      "citation": "AHA Scientific Advisory 2019; multiple RCTs."
+    },
+    {
+      "title": "ASCVD Risk (select populations)",
+      "summary": "High-purity EPA (icosapent ethyl) reduces CV events in high-risk patients on statins.",
+      "evidence_level": "High for Rx EPA (REDUCE-IT); mixed for OTC blends",
+      "citation": "Bhatt et al. N Engl J Med 2019; REDUCE-IT."
+    }
+  ],
+  "safety": [
+    "Possible fishy aftertaste/GI upset.",
+    "High doses may increase bleeding risk with anticoagulants (monitor).",
+    "Quality matters—oxidation and contaminants vary."
+  ],
+  "banm_applications": [
+    "2 fatty fish meals/week (e.g., salmon, mackerel, sardines).",
+    "If not meeting intake, consider 1–2 g/day EPA+DHA with clinician guidance."
+  ],
+  "authenticity": {
+    "issue": "Oxidation and label inaccuracy in some products.",
+    "recommendation": "Choose third-party tested brands; store cool and away from light."
+  },
+  "banm_tags": ["Cardio","Lipid","BANM"]
+}

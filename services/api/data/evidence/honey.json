@@ -1,0 +1,50 @@
+{
+  "id": "honey",
+  "title": "Pure Bee Honey",
+  "category": "Foods",
+  "tags": ["Honey", "Natural Sweetener", "BANM", "Functional Foods"],
+  "summary": "Honey is a natural sweetener rich in sugars, enzymes, and bioactive compounds. In BANM, it is used sparingly as a refined sugar substitute, with specific evidence-based applications.",
+  "evidence": [
+    {
+      "title": "Cough Relief in Children (>1 year)",
+      "summary": "Honey reduces frequency and severity of nighttime cough and improves sleep in children with viral upper respiratory tract infections.",
+      "evidence_level": "Moderate (multiple RCTs, Cochrane review)",
+      "citation": "Oduwole O et al. Cochrane Database Syst Rev. 2018; Honey for acute cough in children."
+    },
+    {
+      "title": "Topical Wound Care (Medical-Grade)",
+      "summary": "Medical-grade honey dressings support moist wound healing, provide antimicrobial activity, and aid debridement in acute and chronic wounds.",
+      "evidence_level": "Moderate (clinical trials + systematic reviews)",
+      "citation": "Jull AB et al. Cochrane Database Syst Rev. 2015; Honey as a topical treatment for wounds."
+    },
+    {
+      "title": "Cardio-Metabolic Effects (Substitution)",
+      "summary": "Replacing refined sugar with certain honeys (raw, clover, robinia) may modestly improve lipids and glycemic markers in healthy diets.",
+      "evidence_level": "Low–Moderate (systematic review/meta-analysis, heterogeneous)",
+      "citation": "Azad E et al. Nutrition Reviews. 2022; Effect of honey on cardiometabolic risk factors."
+    },
+    {
+      "title": "Prebiotic Potential",
+      "summary": "Honey’s oligosaccharides and polyphenols may positively influence gut microbiota composition. Evidence is emerging and requires more human trials.",
+      "evidence_level": "Emerging",
+      "citation": "Samarghandian S et al. Molecules. 2017; Honey and health: A review of therapeutic effects."
+    }
+  ],
+  "safety": [
+    "Do not give honey to infants under 12 months (risk of infant botulism).",
+    "Count honey within daily sugar limits (1 Tbsp ≈ 64 kcal, 17 g sugars).",
+    "People with diabetes should only use honey as a sugar substitute within carb limits.",
+    "For wounds, only use medical-grade sterile honey, not household honey."
+  ],
+  "banm_applications": [
+    "Cough relief in children (>1 y) — short-term, ½–1 tsp before bed.",
+    "Smart sugar swap — replace refined sugar with small amounts of raw/single-floral honey.",
+    "Gut support recipes — pair honey with high-fiber, protein-rich foods.",
+    "Education only — highlight medical-grade honey in wound care."
+  ],
+  "authenticity": {
+    "issue": "Honey is one of the most adulterated foods globally. EU 2023 report flagged ~46% of imports as suspicious.",
+    "recommendation": "Purchase from trusted producers with certifications; prefer monofloral, traceable honeys."
+  },
+  "banm_tags": ["Honey-Smart", "Prebiotic", "Sugar Swap", "BANM"]
+}

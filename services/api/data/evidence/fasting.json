@@ -1,0 +1,35 @@
+{
+  "id": "fasting",
+  "title": "Intermittent Fasting (IF)",
+  "category": "Patterns",
+  "tags": ["Time-restricted eating","IF","Metabolic health","BANM"],
+  "summary": "Structured eating windows (e.g., 14:10, 16:8) can reduce total energy intake and improve some metabolic markers for appropriate individuals.",
+  "evidence": [
+    {
+      "title": "Weight & Metabolic Markers",
+      "summary": "IF and continuous calorie restriction have broadly similar effects on weight; some studies show improved insulin sensitivity.",
+      "evidence_level": "Moderate (systematic reviews/RCTs, heterogeneous)",
+      "citation": "Hoddy et al. Annu Rev Nutr 2020; Varady et al. Cell Metab 2018."
+    },
+    {
+      "title": "Early Time-Restricted Eating",
+      "summary": "Aligning eating earlier with circadian rhythm may improve glycemic control in some.",
+      "evidence_level": "Emerging–Moderate",
+      "citation": "Sutton et al. Cell Metab 2018; Lowe et al. JAMA Intern Med 2020."
+    }
+  ],
+  "safety": [
+    "Not for children, pregnancy, eating disorders, or underweight.",
+    "Type 1/insulin-treated diabetes requires medical supervision.",
+    "Watch for headaches, low energy initially."
+  ],
+  "banm_applications": [
+    "Start with 12:12, progress to 14:10 if appropriate.",
+    "Focus on nutrient-dense meals during the eating window; hydrate well."
+  ],
+  "authenticity": {
+    "issue": "Hype vs. adherence reality; protocols vary widely.",
+    "recommendation": "Personalize to lifestyle, meds, training load; monitor response."
+  },
+  "banm_tags": ["Metabolic","Behavior","BANM"]
+}
