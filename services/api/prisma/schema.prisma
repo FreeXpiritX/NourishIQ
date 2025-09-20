@@ -1,14 +1,29 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
+model Recipe {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  title       String
+  slug        String   @unique
+  minutes     Int?
+  ingredients String[] // Postgres text[]
+  steps       String[] // Postgres text[]
+  tags        String[] // Postgres text[]
+  kcal        Int?
+  macros      Json?    // e.g. { "protein": 25, "carbs": 50, "fat": 12 }
+  costTier    String?  // '£' | '££' | '£££'
+
+  @@index([slug])
 }
+

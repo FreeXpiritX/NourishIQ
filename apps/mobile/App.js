@@ -1,97 +1,182 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { SafeAreaView, Text, ScrollView, RefreshControl, Pressable, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Platform, View, ScrollView, Text, TextInput, Button } from "react-native";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8083";
-
-async function fetchJson(path, opts = {}) {
-  const res = await fetch(`${API_URL}${path}`, opts);
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`API ${path} -> ${res.status} ${body}`);
-  }
-  return res.json();
-}
+const API = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8083";
 
 export default function App() {
   const [health, setHealth] = useState(null);
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
 
-  const load = useCallback(async () => {
+  async function getHealth() {
+    try {
+      const res = await fetch(`${API}/api/health`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      setHealth(json);
+    } catch (e) {
+      setHealth(null);
+    }
+  }
+
+  async function loadUsers() {
+    setLoading(true);
     setErr(null);
     try {
-      const h = await fetchJson("/api/health");
-      setHealth(h);
-      const u = await fetchJson("/api/users");
-      setUsers(u.users || []);
+      const res = await fetch(`${API}/api/users`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      setUsers(json);
     } catch (e) {
       setErr(String(e.message || e));
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }
 
-  const createUser = useCallback(async () => {
+  async function createDemoUser() {
+    setLoading(true);
     setErr(null);
     try {
-      await fetchJson("/api/users", {
+      const ts = Date.now();
+      const body = {
+        name: name?.trim() || `Demo ${ts}`,
+        email: email?.trim() || `demo+${ts}@example.com`,
+      };
+      const res = await fetch(`${API}/api/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: "{}",
+        body: JSON.stringify(body),
       });
-      await load();
+      if (res.status === 409) {
+        const j = await res.json();
+        throw new Error(j?.error || "Email already in use");
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await loadUsers();
+      setName("");
+      setEmail("");
     } catch (e) {
       setErr(String(e.message || e));
+    } finally {
+      setLoading(false);
     }
-  }, [load]);
+  }
 
-  useEffect(() => { load(); }, [load]);
+  async function deleteFirstUser() {
+    if (!users.length) return;
+    const id = users[0].id;
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await fetch(`${API}/api/users/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await loadUsers();
+    } catch (e) {
+      setErr(String(e.message || e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resetUsers() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await fetch(`${API}/api/users`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await loadUsers();
+    } catch (e) {
+      setErr(String(e.message || e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getHealth();
+    loadUsers();
+  }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, padding: 20, gap: 12 }}>
-      <Text style={{ fontSize: 22, fontWeight: "700" }}>NourishIQ Mobile (Dev)</Text>
+    <View style={{ flex: 1, paddingTop: Platform.OS === "ios" ? 48 : 16, paddingHorizontal: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <Text style={{ fontSize: 26, fontWeight: "700", marginBottom: 6 }}>NourishIQ (Dev)</Text>
+        <Text style={{ color: "#666", marginBottom: 10 }}>API: {API}</Text>
 
-      {err ? <Text style={{ color: "red" }}>{err}</Text> : null}
+        <View style={{ marginBottom: 10 }}>
+          <Button title="Reload Health" onPress={getHealth} />
+        </View>
+        <Text>Health: {health ? JSON.stringify(health) : "unknown"}</Text>
 
-      <Text style={{ fontSize: 14 }}>API URL: {process.env.EXPO_PUBLIC_API_URL}</Text>
-      <Text style={{ fontSize: 14 }}>Health: {health ? JSON.stringify(health) : "…loading"}</Text>
+        <View style={{ height: 16 }} />
 
-      <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
-        <Pressable
-          onPress={load}
-          style={{ backgroundColor: "#222", paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8 }}
-        >
-          <Text style={{ color: "white" }}>Reload</Text>
-        </Pressable>
-        <Pressable
-          onPress={createUser}
-          style={{ backgroundColor: "#0a7", paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8 }}
-        >
-          <Text style={{ color: "white" }}>Create Demo User</Text>
-        </Pressable>
-      </View>
-
-      <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 8 }}>Users</Text>
-
-      <ScrollView
-        style={{ flex: 1 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={async () => {
-              setRefreshing(true);
-              await load().finally(() => setRefreshing(false));
+        <View style={{ gap: 8 }}>
+          <Text style={{ fontWeight: "600" }}>Create user</Text>
+          <TextInput
+            placeholder="Name (optional — default Demo + timestamp)"
+            value={name}
+            onChangeText={setName}
+            style={{
+              borderWidth: 1,
+              borderColor: "#ccc",
+              borderRadius: 8,
+              padding: 10,
             }}
           />
-        }
-      >
-        {users.length === 0 ? (
-          <Text style={{ marginTop: 8 }}>No users yet. Tap “Create Demo User”.</Text>
-        ) : (
-          users.map((u, i) => (
-            <Text key={i} style={{ marginBottom: 4 }}>{u.email}</Text>
-          ))
-        )}
+          <TextInput
+            placeholder="Email (optional — default demo+timestamp@example.com)"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+            style={{
+              borderWidth: 1,
+              borderColor: "#ccc",
+              borderRadius: 8,
+              padding: 10,
+            }}
+          />
+          <Button title={loading ? "Working…" : "Create Demo User"} onPress={createDemoUser} />
+        </View>
+
+        <View style={{ height: 16 }} />
+        <View style={{ flexDirection: "row", gap: 10, justifyContent: "space-between" }}>
+          <View style={{ flex: 1 }}>
+            <Button title="Reload Users" onPress={loadUsers} />
+          </View>
+          <View style={{ width: 10 }} />
+          <View style={{ flex: 1 }}>
+            <Button title="Delete First User" color="#b00020" onPress={deleteFirstUser} />
+          </View>
+        </View>
+
+        <View style={{ height: 10 }} />
+        <Button title="Reset ALL Users (dev)" color="#8a2be2" onPress={resetUsers} />
+
+        <View style={{ height: 20 }} />
+        {err ? (
+          <>
+            <Text style={{ color: "red", fontWeight: "700" }}>Error</Text>
+            <Text selectable>{err}</Text>
+            <View style={{ height: 10 }} />
+          </>
+        ) : null}
+
+        <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 6 }}>Users</Text>
+        {loading && <Text>Loading…</Text>}
+        {!loading && users.length === 0 && <Text>No users yet. Create one above.</Text>}
+        {users.map((u) => (
+          <View key={u.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#eee" }}>
+            <Text style={{ fontWeight: "600" }}>{u.name}</Text>
+            <Text style={{ color: "#555" }}>{u.email}</Text>
+            <Text style={{ color: "#999", fontSize: 12 }}>id: {u.id}</Text>
+          </View>
+        ))}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

@@ -5,60 +5,60 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
-import Stripe from 'stripe';
 
+// Stripe is optional for local dev tests (we still import it for real verification)
+import Stripe from 'stripe';
 const stripe = process.env.STRIPE_SECRET ? new Stripe(process.env.STRIPE_SECRET) : null;
+
 const prisma = new PrismaClient();
 const app = express();
 
-/* ────────────────────────────────────────────────
-   Logging & CORS
-   ──────────────────────────────────────────────── */
+/**
+ * ──────────────────────────────────────────────────────────────────────────────
+ * Logging, CORS
+ * ──────────────────────────────────────────────────────────────────────────────
+ */
 app.use(morgan('dev'));
 app.use(cors({ origin: '*', credentials: false }));
 
-/* ────────────────────────────────────────────────
-   Stripe Webhook — RAW body FIRST
-   ──────────────────────────────────────────────── */
+/**
+ * ──────────────────────────────────────────────────────────────────────────────
+ * Stripe Webhook — RAW BODY FIRST!
+ * - In PRODUCTION: we verify signature with Stripe.
+ * - In DEV: if there is NO signature header, we bypass verification so you can curl.
+ * ──────────────────────────────────────────────────────────────────────────────
+ */
 app.post(
   '/api/v1/stripe/webhook',
   bodyParser.raw({ type: 'application/json' }),
   async (req, res) => {
     try {
-      let event;
-      const buf = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || '');
+      const buf = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body || {}));
+      const sig = req.headers['stripe-signature'];
 
-      // If STRIPE_WEBHOOK_SECRET is set and a signature header exists, verify.
-      // Otherwise (DEV ONLY) accept the payload so curl tests work.
-      if (stripe && process.env.STRIPE_WEBHOOK_SECRET) {
-        const sig = req.headers['stripe-signature'];
-        if (!sig) {
-          console.warn('[Webhook] No signature header, bypassing verification (DEV ONLY).');
-          event = JSON.parse(buf.toString('utf8'));
-        } else {
-          try {
-            event = stripe.webhooks.constructEvent(
-              buf,
-              sig,
-              process.env.STRIPE_WEBHOOK_SECRET
-            );
-          } catch (err) {
-            console.error('[Webhook] signature verification failed:', err.message);
-            return res.status(400).json({ error: err.message });
-          }
+      let event;
+
+      if (stripe && process.env.STRIPE_WEBHOOK_SECRET && sig) {
+        // Real verification path (Stripe sends the signature header)
+        try {
+          event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        } catch (err) {
+          console.error('[Webhook] signature verification failed:', err.message);
+          return res.status(400).json({ error: err.message });
         }
       } else {
-        // No Stripe secret configured: accept as raw JSON (dev)
-        event = JSON.parse(buf.toString('utf8'));
+        // DEV-ONLY BYPASS: no signature header present (manual curl)
+        console.warn('[Webhook] No signature header, bypassing verification (DEV ONLY).');
+        event = JSON.parse(buf.toString('utf8') || '{}');
       }
 
       const eventId = event.id || `evt_${Date.now()}`;
       const type = event.type || 'unknown';
 
-      // Idempotent save
-      const existing = await prisma.webhookEvent.findUnique({ where: { eventId } });
-      if (existing) {
-        return res.status(200).json({ ok: true, dedup: true });
+      // Idempotent save: skip if already stored
+      const exists = await prisma.webhookEvent.findUnique({ where: { eventId } });
+      if (exists) {
+        return res.status(200).json({ ok: true, dedup: true, eventId });
       }
 
       await prisma.webhookEvent.create({
@@ -79,20 +79,24 @@ app.post(
   }
 );
 
-// After webhook, enable JSON for the rest of the app
+// After webhook route, enable JSON body parsing for the rest
 app.use(express.json());
 
-/* ────────────────────────────────────────────────
-   Health & Version
-   ──────────────────────────────────────────────── */
+/**
+ * ──────────────────────────────────────────────────────────────────────────────
+ * Health & Version
+ * ──────────────────────────────────────────────────────────────────────────────
+ */
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.get('/api/version', (_req, res) =>
   res.json({ version: 'v1.0.0', timestamp: new Date().toISOString() })
 );
 
-/* ────────────────────────────────────────────────
-   Users CRUD
-   ──────────────────────────────────────────────── */
+/**
+ * ──────────────────────────────────────────────────────────────────────────────
+ * Users CRUD (SQLite via Prisma)
+ * ──────────────────────────────────────────────────────────────────────────────
+ */
 app.get('/api/users', async (_req, res) => {
   const users = await prisma.user.findMany({ orderBy: { id: 'desc' } });
   res.json(users);
@@ -110,6 +114,7 @@ app.post('/api/users', async (req, res) => {
   try {
     const name = (req.body?.name || `Demo ${Date.now()}`).toString();
     const email = (req.body?.email || `demo+${Date.now()}@example.com`).toString();
+
     const user = await prisma.user.create({ data: { name, email } });
     res.status(201).json(user);
   } catch (err) {
@@ -166,9 +171,11 @@ app.delete('/api/users', async (_req, res) => {
   res.json({ ok: true });
 });
 
-/* ────────────────────────────────────────────────
-   Webhook debug helpers
-   ──────────────────────────────────────────────── */
+/**
+ * ──────────────────────────────────────────────────────────────────────────────
+ * Webhook debugging helpers (read-only)
+ * ──────────────────────────────────────────────────────────────────────────────
+ */
 app.get('/api/webhooks/recent', async (_req, res) => {
   const items = await prisma.webhookEvent.findMany({
     orderBy: { id: 'desc' },
@@ -185,11 +192,15 @@ app.get('/api/webhooks/:eventId', async (req, res) => {
   res.json(item);
 });
 
-/* ────────────────────────────────────────────────
-   Start server
-   ──────────────────────────────────────────────── */
+/**
+ * ──────────────────────────────────────────────────────────────────────────────
+ * Start server
+ * ──────────────────────────────────────────────────────────────────────────────
+ */
 const PORT = Number(process.env.PORT || 8083);
 const HOST = process.env.HOST || '0.0.0.0';
 app.listen(PORT, HOST, () => {
   console.log(`[API] listening on ${HOST}:${PORT}`);
-});
+});ø
+xpnpm dev
+

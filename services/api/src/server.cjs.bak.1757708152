@@ -1,0 +1,104 @@
+require('dotenv').config();
+
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const Stripe = require('stripe');
+
+const app = express();
+
+// Small request log so we SEE traffic
+app.use((req,res,next)=>{ console.log('[REQ]', req.method, req.url, 'len=', req.headers['content-length']||0); next(); });
+
+// CORS
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  credentials: true
+}));
+
+// ---- Stripe init (requires real sk_test_ key in .env)
+const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
+const stripe = (STRIPE_KEY && STRIPE_KEY.startsWith('sk_test_')) ? new Stripe(STRIPE_KEY) : null;
+
+// ---- Webhook (raw body BEFORE express.json)
+app.post('/api/v1/stripe/webhook', bodyParser.raw({ type: 'application/json' }), (req, res) => {
+  console.log('[Webhook] incoming', new Date().toISOString(), 'bytes=', req.headers['content-length'] || '0');
+
+  if (!stripe) {
+    console.error('[Webhook] Stripe not configured (missing/invalid sk_test_ key)');
+    return res.status(500).json({ ok: false });
+  }
+
+  const sig = req.headers['stripe-signature'];
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  try {
+    const event = stripe.webhooks.constructEvent(req.body, sig, secret);
+    console.log('[Stripe] event:', event.type);
+
+    if (event.type === 'checkout.session.completed') {
+      const s = event.data.object;
+      const email = s && s.customer_details ? s.customer_details.email : null;
+      console.log('[Stripe] checkout.session.completed for:', email);
+    }
+
+    if (event.type === 'customer.subscription.deleted') {
+      console.log('[Stripe] subscription canceled');
+    }
+
+    return res.json({ received: true });
+  } catch (err) {
+    console.error('[Webhook] signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+});
+
+// ---- JSON AFTER the webhook
+app.use(express.json());
+
+// Health
+app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+// Create a Checkout Session (uses PRICE_ID from .env if not provided in body)
+app.post('/api/v1/checkout/session', async (req, res) => {
+  try {
+    if (!stripe) {
+      console.error('[checkout/session] Stripe not configured');
+      return res.status(500).json({ ok: false, message: 'Stripe not configured' });
+    }
+
+    const priceId = (req.body && req.body.priceId) || process.env.PRICE_ID;
+    const email   = (req.body && req.body.email)   || 'test@example.com';
+    if (!priceId) return res.status(400).json({ ok: false, message: 'Missing priceId' });
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      customer_email: email,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${process.env.APP_WEB_URL || 'http://localhost:3000'}/onboarding/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.APP_WEB_URL || 'http://localhost:3000'}/onboarding/cancel`,
+      automatic_tax: { enabled: true }
+    });
+
+    res.json({ ok: true, data: { url: session.url } });
+  } catch (e) {
+    console.error('[checkout/session] error:', e && e.message ? e.message : e);
+    res.status(400).json({ ok: false, message: 'Could not create session' });
+  }
+});
+
+const PORT = Number(process.env.PORT || 8083);
+// Bind to 127.0.0.1 because stripe listen forwards there
+app.listen(PORT, '127.0.0.1', () => console.log('[API] listening on', PORT));
+
+//
+// --- Debug: in-memory snapshot of last Stripe events
+global._recentStripe = global._recentStripe || { lastEmail: null, lastEventTypes: [] };
+
+app.get('/api/v1/debug/stripe', (_req, res) => {
+  res.json({
+    ok: true,
+    lastEmail: global._recentStripe.lastEmail,
+    lastEventTypes: global._recentStripe.lastEventTypes
+  });
+});

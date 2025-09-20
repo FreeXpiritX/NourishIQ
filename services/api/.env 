@@ -1,0 +1,12 @@
+PORT=8083
+HOST=0.0.0.0
+CORS_ORIGIN=http://localhost:3000
+APP_WEB_URL=http://localhost:3000
+
+# Optional for later (DB). Leave as-is if you don't use it yet.
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/nourishiq
+
+# Stripe (TEST keys for development)
+STRIPE_SECRET_KEY=sk_test_REPLACE_ME
+STRIPE_WEBHOOK_SECRET=whsec_REPLACE_ME
+

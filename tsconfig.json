@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "lib": ["esnext"],
+    "jsx": "react",
+    "moduleResolution": "node",
+    "strict": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
